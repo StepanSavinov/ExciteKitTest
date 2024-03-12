@@ -1,0 +1,60 @@
+﻿@using ExciteKit.DTO
+@using System.Collections.ObjectModel
+@using System.Text
+@using System.Text.Json
+@using System.Text.Json.Serialization
+@using MudBlazor
+@inject IHttpClientFactory ClientFactory
+@inject IConfiguration Configuration
+<div style="padding: 10px; gap: 5px;">
+    <MudButton @onclick="() => DownloadExcel(Elements)" Variant="Variant.Filled" Cursor="Pointer" Color="Color.Secondary">Excel</MudButton>
+    <MudButton @onclick="() => DownloadCsv(Elements)" Variant="Variant.Filled" Cursor="Pointer" Color="Color.Secondary">CSV</MudButton>
+</div>
+
+@code
+{
+    [Parameter] 
+    public IEnumerable<DataEventVm> Elements { get; set; }
+    
+    private async Task DownloadExcel(IEnumerable<DataEventVm> data)
+    {
+        var client = ClientFactory.CreateClient();
+        
+        var response = await client.PostAsync(
+            new Uri($"{Configuration.GetSection("API").Value}/File/ExportDataToExcel"),
+            new StringContent(JsonSerializer.Serialize(Elements), Encoding.UTF8, "application/json")
+        );
+
+        if (response.IsSuccessStatusCode)
+        {
+            await using var content = await response.Content.ReadAsStreamAsync();
+            using var memoryStream = new MemoryStream();
+            await content.CopyToAsync(memoryStream);
+            memoryStream.Seek(0, SeekOrigin.Begin);
+
+            await using var fileStream = new FileStream("data.xlsx", FileMode.Create, FileAccess.Write);
+            await memoryStream.CopyToAsync(fileStream);
+        }
+    }
+
+    private async Task DownloadCsv(IEnumerable<DataEventVm> data)
+    {
+        var client = ClientFactory.CreateClient();
+
+        var response = await client.PostAsync(
+            new Uri($"{Configuration.GetSection("API").Value}/File/ExportDataToCSV"),
+            new StringContent(JsonSerializer.Serialize(Elements), Encoding.UTF8, "application/json")
+        );
+
+        if (response.IsSuccessStatusCode)
+        {
+            await using var content = await response.Content.ReadAsStreamAsync();
+            using var memoryStream = new MemoryStream();
+            await content.CopyToAsync(memoryStream);
+            memoryStream.Seek(0, SeekOrigin.Begin);
+            
+            await using var fileStream = new FileStream("data.csv", FileMode.Create, FileAccess.Write);
+            await memoryStream.CopyToAsync(fileStream);
+        }
+    }
+}

@@ -1,0 +1,30 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExciteKit.API", "ExciteKit.API\ExciteKit.API.csproj", "{C81EFFF6-D0BB-4D56-866D-EEEB0AEF002D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExciteKit.DTO", "ExciteKit.DTO\ExciteKit.DTO.csproj", "{1D0757B2-5064-4E3E-8FD8-88721E6F19A5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExciteKit.Frontend", "ExciteKit.Frontend\ExciteKit.Frontend.csproj", "{6FA49FA0-1219-4B5D-B7B7-F4CD3B3A8982}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C81EFFF6-D0BB-4D56-866D-EEEB0AEF002D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C81EFFF6-D0BB-4D56-866D-EEEB0AEF002D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C81EFFF6-D0BB-4D56-866D-EEEB0AEF002D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C81EFFF6-D0BB-4D56-866D-EEEB0AEF002D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1D0757B2-5064-4E3E-8FD8-88721E6F19A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1D0757B2-5064-4E3E-8FD8-88721E6F19A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1D0757B2-5064-4E3E-8FD8-88721E6F19A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1D0757B2-5064-4E3E-8FD8-88721E6F19A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6FA49FA0-1219-4B5D-B7B7-F4CD3B3A8982}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6FA49FA0-1219-4B5D-B7B7-F4CD3B3A8982}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6FA49FA0-1219-4B5D-B7B7-F4CD3B3A8982}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6FA49FA0-1219-4B5D-B7B7-F4CD3B3A8982}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+	EndGlobalSection
+EndGlobal

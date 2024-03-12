@@ -1,0 +1,70 @@
+﻿@using MudBlazor
+@using System.Text.Json
+@using ExciteKit.DTO
+@using System.Collections.ObjectModel
+@inject IHttpClientFactory ClientFactory
+@inject IConfiguration Configuration
+@page "/Diagram"
+
+<PageTitle>Diagram</PageTitle>
+
+<h3>Diagram</h3>
+
+<MudSelect Label="User" Variant="Variant.Outlined" Dense="true" T="int" ValueChanged="OnSelectedValueAsync" Class="mt-4">
+    @foreach (var userId in _userIds)
+    {
+        <MudSelectItem T="int" Value="userId">User Id @userId</MudSelectItem>
+    }
+</MudSelect>
+
+<MudChart ChartType="ChartType.Donut" LegendPosition="Position.Bottom" Width="300px" Height="300px"
+          InputData="@_chartData" InputLabels="@_chartLabels">
+</MudChart>
+
+@code {
+    private IEnumerable<int> _userIds = new ObservableCollection<int>();
+    private IEnumerable<UrlCountVm> _urls = new ObservableCollection<UrlCountVm>();
+    private double[]? _chartData;
+    private string[]? _chartLabels;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        _userIds = await GetUsersIds();
+    }
+    
+    private async Task OnSelectedValueAsync(int userId)
+    {
+        var client = ClientFactory.CreateClient();
+
+        var query = QueryString.Create("userId", userId.ToString());
+        
+        var response = await client.GetAsync(new Uri($"{Configuration.GetSection("API").Value}/EventsUserUrls{query}"));
+
+        if (response.IsSuccessStatusCode)
+        {
+            await using var responseStream = await response.Content.ReadAsStreamAsync();
+            _urls = await JsonSerializer.DeserializeAsync<IEnumerable<UrlCountVm>>(responseStream)
+                    ?? Array.Empty<UrlCountVm>();
+        }
+
+        _urls = new ObservableCollection<UrlCountVm>(_urls);
+        _chartData = _urls.Select(x => x.Count).ToArray();
+        _chartLabels = _urls.Select(x => x.Url).ToArray();
+    }
+
+    private async Task<IEnumerable<int>> GetUsersIds()
+    {
+        var client = ClientFactory.CreateClient();
+        
+        var response = await client.GetAsync(new Uri($"{Configuration.GetSection("API").Value}/EventsUserIds"));
+
+        if (response.IsSuccessStatusCode)
+        {
+            await using var responseStream = await response.Content.ReadAsStreamAsync();
+            _userIds = await JsonSerializer.DeserializeAsync<IEnumerable<int>>(responseStream) 
+                    ?? Array.Empty<int>();
+        }
+
+        return _userIds;
+    }
+}

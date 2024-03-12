@@ -1,0 +1,133 @@
+﻿@page "/TableConnection"
+@using System.Text.Json
+@using ExciteKit.DTO
+@using MudBlazor
+@using System.Collections.ObjectModel
+@inject IHttpClientFactory ClientFactory
+@inject IConfiguration Configuration
+
+<PageTitle>Data</PageTitle>
+
+<h3>Table Connection</h3>
+
+<div style="display: flex; justify-content: space-between">
+    <div>
+        <MudCheckBox T="bool" ValueChanged="e => ShowUniqueData(e)" Label="Only unique urls" Color="Color.Primary"></MudCheckBox>
+    </div>
+    <div>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@ToggleOpen">
+            @(_isOpen ? "Cancel" : "Download")
+        </MudButton>
+        <MudPopover Open="@_isOpen" TransformOrigin="Origin.BottomCenter">
+            <div class="d-flex flex-column pa-1">
+                <DownloadPopover Elements="_elements"/>
+            </div>
+        </MudPopover>
+    </div>
+</div>
+<MudTable Items="@_elements" Hover="true" Breakpoint="Breakpoint.Sm" LoadingProgressColor="Color.Info">
+    <HeaderContent>
+        <MudTh>UserId</MudTh>
+        <MudTh>
+            <MudDateRangePicker Label="CaptureDt" bind-DateRange="_dateRange"
+                                DateRangeChanged="e => GetDataByTime(e.Start, e.End)" Clearable="true"/>
+        </MudTh>
+        <MudTh>EventName</MudTh>
+        <MudTh>EventContext</MudTh>
+        <MudTh>Url</MudTh>
+        <MudTh>Item</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Sign">@context.UserId</MudTd>
+        <MudTd DataLabel="Name">@context.CaptureDt</MudTd>
+        <MudTd DataLabel="Position">@context.EventName</MudTd>
+        <MudTd DataLabel="Molar mass">@context.EventContext</MudTd>
+        <MudTd DataLabel="Molar mass">@context.Url</MudTd>
+        <MudTd DataLabel="Molar mass">@context.Item</MudTd>
+    </RowTemplate>
+</MudTable>
+
+@code {
+    private IEnumerable<DataEventVm> _elements = new ObservableCollection<DataEventVm>();
+    private DateRange _dateRange = new(DateTime.Now.Date, DateTime.Now.AddDays(5).Date);
+
+    protected override async Task OnInitializedAsync()
+    {
+        _elements = await GetData();
+    }
+
+    private async Task<IEnumerable<DataEventVm>> GetData()
+    {
+        var client = ClientFactory.CreateClient();
+        
+        var response = await client.GetAsync(new Uri($"{Configuration.GetSection("API").Value}/EventsList"));
+
+        if (response.IsSuccessStatusCode)
+        {
+            await using var responseStream = await response.Content.ReadAsStreamAsync();
+            _elements = await JsonSerializer.DeserializeAsync<IEnumerable<DataEventVm>>(responseStream) 
+                        ?? Array.Empty<DataEventVm>();
+        }
+
+        return new ObservableCollection<DataEventVm>(_elements);
+    }
+    
+    private async Task ShowUniqueData(bool isUnique)
+    {
+        var client = ClientFactory.CreateClient();
+
+         var response = isUnique
+             ? await client.GetAsync(new Uri($"{Configuration.GetSection("API").Value}/EventsList"))
+             : await client.GetAsync(new Uri($"{Configuration.GetSection("API").Value}/EventsListUnique"));
+        
+         if (response.IsSuccessStatusCode)
+         {
+             await using var responseStream = await response.Content.ReadAsStreamAsync();
+             _elements = await JsonSerializer.DeserializeAsync<IEnumerable<DataEventVm>>(responseStream) 
+                         ?? Array.Empty<DataEventVm>();
+        }
+
+         _elements = new ObservableCollection<DataEventVm>(_elements);
+    }
+    
+    private async Task GetDataByTime(DateTime? startDate, DateTime? endDate)
+    {
+        var client = ClientFactory.CreateClient();
+
+        HttpResponseMessage response;
+        
+        if (startDate is null && endDate is null)
+        {
+            response = await client.GetAsync(new Uri($"{Configuration.GetSection("API").Value}/EventsList"));
+        }
+        else
+        {
+            var query = QueryString.Create(new Dictionary<string, string?>
+            {
+                ["startDate"] = startDate?.ToString("yyyy-MM-dd HH:mm:ss.fff"),
+                ["endDate"] = endDate?.ToString("yyyy-MM-dd HH:mm:ss.fff")
+            });
+
+            response = await client.GetAsync(new Uri($"{Configuration.GetSection("API").Value}/EventsListByDate{query}"));
+        }
+        
+        if (response.IsSuccessStatusCode)
+        {
+            await using var responseStream = await response.Content.ReadAsStreamAsync();
+            _elements = await JsonSerializer.DeserializeAsync<IEnumerable<DataEventVm>>(responseStream) 
+                        ?? Array.Empty<DataEventVm>();
+        }
+
+        _elements = new ObservableCollection<DataEventVm>(_elements);
+    }
+
+    private bool _isOpen;
+
+    private void ToggleOpen()
+    {
+        if (_isOpen)
+            _isOpen = false;
+        else
+            _isOpen = true;
+    }
+}
