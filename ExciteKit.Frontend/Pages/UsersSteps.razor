@@ -1,0 +1,53 @@
+﻿@page "/UsersSteps"
+@using System.Text.Json
+@using ExciteKit.DTO
+@using MudBlazor
+@using System.Collections.ObjectModel
+@inject IHttpClientFactory ClientFactory
+@inject IConfiguration Configuration
+
+<PageTitle>Data</PageTitle>
+
+<h3>Users Steps</h3>
+
+<MudTable Items="@_elements" Hover="true" Breakpoint="Breakpoint.Sm" LoadingProgressColor="Color.Info">
+    <HeaderContent>
+        <MudTh>UserId</MudTh>
+        <MudTh>StepUrl</MudTh>
+        <MudTh>StepEvent</MudTh>
+        <MudTh>StepNumber</MudTh>
+        <MudTh>TotalSteps</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="UserId">@context.UserId</MudTd>
+        <MudTd DataLabel="StepUrl">@context.StepUrl</MudTd>
+        <MudTd DataLabel="StepEvent">@context.StepEvent</MudTd>
+        <MudTd DataLabel="StepNumber">@context.StepNumber</MudTd>
+        <MudTd DataLabel="TotalSteps">@context.TotalSteps</MudTd>
+    </RowTemplate>
+</MudTable>
+
+@code {
+    private IEnumerable<UserStepsVm> _elements = new ObservableCollection<UserStepsVm>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _elements = await GetData();
+    }
+
+    private async Task<IEnumerable<UserStepsVm>> GetData()
+    {
+        var client = ClientFactory.CreateClient();
+        
+        var response = await client.GetAsync(new Uri($"{Configuration.GetSection("API").Value}/EventsGetUsersSteps"));
+
+        if (response.IsSuccessStatusCode)
+        {
+            await using var responseStream = await response.Content.ReadAsStreamAsync();
+            _elements = await JsonSerializer.DeserializeAsync<IEnumerable<UserStepsVm>>(responseStream) 
+                        ?? Array.Empty<UserStepsVm>();
+        }
+
+        return new ObservableCollection<UserStepsVm>(_elements);
+    }
+}

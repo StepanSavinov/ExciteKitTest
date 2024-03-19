@@ -64,4 +64,15 @@ public class DataController(AppDbContext context) : ControllerBase
 
         return Ok(usersIds.DistinctBy(x => x));
     }
+
+    [HttpGet]
+    [Route("/EventsGetUsersSteps")]
+    public async Task<IActionResult> GetUsersSteps()
+    {
+        var data = await context.UserSteps
+            .FromSqlRaw("EXEC GetUserEventSteps")
+            .ToListAsync();
+        
+        return Ok(data);
+    }
 }
